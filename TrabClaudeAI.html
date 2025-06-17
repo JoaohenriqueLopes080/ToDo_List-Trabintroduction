@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tarefas</title>
+    <style>
+        /* Reset básico e configurações globais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Contêiner principal da aplicação */
+        .todo-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cabeçalho da aplicação */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* Seção de entrada de nova tarefa */
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .task-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .add-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .add-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Lista de tarefas */
+        .tasks-section {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .task-item:hover {
+            background: #f0f0f0;
+            border-color: #e0e0e0;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .task-text:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* Tarefa concluída */
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #888;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .task-item.completed {
+            background: #e8f5e8;
+            opacity: 0.7;
+        }
+
+        /* Campo de edição */
+        .task-edit-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            background: white;
+        }
+
+        /* Botões de ação */
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #e0a800;
+            transform: scale(1.1);
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        .save-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #218838;
+            transform: scale(1.1);
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
+            transform: scale(1.1);
+        }
+
+        /* Estado vazio */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            .todo-container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .add-btn {
+                width: 100%;
+            }
+
+            .task-item {
+                padding: 12px;
+            }
+
+            .action-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+        }
+
+        /* Scrollbar personalizada */
+        .tasks-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tasks-section::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .tasks-section::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .tasks-section::-webkit-scrollbar-thumb:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="todo-container">
+        <!-- Cabeçalho da aplicação -->
+        <div class="header">
+            <h1>📝 Minhas Tarefas</h1>
+            <p>Organize seu dia de forma simples e eficiente</p>
+        </div>
+
+        <!-- Seção para adicionar nova tarefa -->
+        <div class="input-section">
+            <input 
+                type="text" 
+                class="task-input" 
+                placeholder="Adicione uma nova tarefa..."
+                maxlength="100"
+            >
+            <button class="add-btn">Adicionar</button>
+        </div>
+
+        <!-- Lista de tarefas -->
+        <div class="tasks-section" id="tasksList">
+            <!-- Tarefas serão adicionadas aqui dinamicamente -->
+        </div>
+    </div>
+
+    <script>
+        // Simulação de localStorage para o ambiente de demonstração
+        // Em um ambiente real, substitua estas funções pelas chamadas diretas ao localStorage
+        let memoryStorage = {};
+
+        function setStorageItem(key, value) {
+            // Em ambiente real: localStorage.setItem(key, value);
+            memoryStorage[key] = value;
+        }
+
+        function getStorageItem(key) {
+            // Em ambiente real: return localStorage.getItem(key);
+            return memoryStorage[key] || null;
+        }
+
+        // Classe principal da aplicação To-Do
+        class TodoApp {
+            constructor() {
+                this.tasks = [];
+                this.taskIdCounter = 1;
+                this.editingTaskId = null;
+                
+                // Elementos DOM
+                this.taskInput = document.querySelector('.task-input');
+                this.addBtn = document.querySelector('.add-btn');
+                this.tasksList = document.getElementById('tasksList');
+                
+                // Inicializar aplicação
+                this.init();
+            }
+
+            // Inicializar a aplicação
+            init() {
+                this.loadTasks();
+                this.bindEvents();
+                this.renderTasks();
+            }
+
+            // Vincular eventos aos elementos
+            bindEvents() {
+                // Adicionar tarefa ao clicar no botão
+                this.addBtn.addEventListener('click', () => this.addTask());
+                
+                // Adicionar tarefa ao pressionar Enter
+                this.taskInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addTask();
+                    }
+                });
+
+                // Foco automático no campo de input
+                this.taskInput.focus();
+            }
+
+            // Carregar tarefas do storage
+            loadTasks() {
+                const savedTasks = getStorageItem('todoTasks');
+                if (savedTasks) {
+                    try {
+                        this.tasks = JSON.parse(savedTasks);
+                        // Atualizar contador de IDs
+                        if (this.tasks.length > 0) {
+                            this.taskIdCounter = Math.max(...this.tasks.map(task => task.id)) + 1;
+                        }
+                    } catch (error) {
+                        console.error('Erro ao carregar tarefas:', error);
+                        this.tasks = [];
+                    }
+                }
+            }
+
+            // Salvar tarefas no storage
+            saveTasks() {
+                setStorageItem('todoTasks', JSON.stringify(this.tasks));
+            }
+
+            // Adicionar nova tarefa
+            addTask() {
+                const taskText = this.taskInput.value.trim();
+                
+                // Validar entrada
+                if (!taskText) {
+                    this.showFeedback('Por favor, digite uma tarefa válida!', 'error');
+                    return;
+                }
+
+                // Criar nova tarefa
+                const newTask = {
+                    id: this.taskIdCounter++,
+                    text: taskText,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+
+                // Adicionar à lista
+                this.tasks.unshift(newTask); // Adiciona no início da lista
+                
+                // Limpar input
+                this.taskInput.value = '';
+                this.taskInput.focus();
+
+                // Salvar e renderizar
+                this.saveTasks();
+                this.renderTasks();
+                
+                this.showFeedback('Tarefa adicionada com sucesso!', 'success');
+            }
+
+            // Alternar status de conclusão da tarefa
+            toggleTask(taskId) {
+                const task = this.tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    this.saveTasks();
+                    this.renderTasks();
+                }
+            }
+
+            // Iniciar edição de tarefa
+            startEditTask(taskId) {
+                if (this.editingTaskId) {
+                    this.cancelEditTask();
+                }
+                this.editingTaskId = taskId;
+                this.renderTasks();
+            }
+
+            // Salvar edição de tarefa
+            saveEditTask(taskId, newText) {
+                const trimmedText = newText.trim();
+                
+                if (!trimmedText) {
+                    this.showFeedback('A tarefa não pode estar vazia!', 'error');
+                    return;
+                }
+
+                const task = this.tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.text = trimmedText;
+                    this.editingTaskId = null;
+                    this.saveTasks();
+                    this.renderTasks();
+                    this.showFeedback('Tarefa editada com sucesso!', 'success');
+                }
+            }
+
+            // Cancelar edição
+            cancelEditTask() {
+                this.editingTaskId = null;
+                this.renderTasks();
+            }
+
+            // Excluir tarefa
+            deleteTask(taskId) {
+                if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+                    this.tasks = this.tasks.filter(t => t.id !== taskId);
+                    this.editingTaskId = null;
+                    this.saveTasks();
+                    this.renderTasks();
+                    this.showFeedback('Tarefa excluída com sucesso!', 'success');
+                }
+            }
+
+            // Renderizar lista de tarefas
+            renderTasks() {
+                // Limpar lista atual
+                this.tasksList.innerHTML = '';
+
+                // Verificar se há tarefas
+                if (this.tasks.length === 0) {
+                    this.renderEmptyState();
+                    return;
+                }
+
+                // Renderizar cada tarefa
+                this.tasks.forEach(task => {
+                    const taskElement = this.createTaskElement(task);
+                    this.tasksList.appendChild(taskElement);
+                });
+            }
+
+            // Criar elemento de tarefa
+            createTaskElement(task) {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = `task-item ${task.completed ? 'completed' : ''}`;
+                taskDiv.dataset.taskId = task.id;
+
+                // Se está sendo editada, mostrar campo de input
+                if (this.editingTaskId === task.id) {
+                    taskDiv.innerHTML = `
+                        <input type="text" class="task-edit-input" value="${task.text}" maxlength="100">
+                        <div class="task-actions">
+                            <button class="action-btn save-btn" title="Salvar">✓</button>
+                            <button class="action-btn cancel-btn" title="Cancelar">✕</button>
+                        </div>
+                    `;
+
+                    // Eventos para modo de edição
+                    const editInput = taskDiv.querySelector('.task-edit-input');
+                    const saveBtn = taskDiv.querySelector('.save-btn');
+                    const cancelBtn = taskDiv.querySelector('.cancel-btn');
+
+                    // Foco no input e seleção do texto
+                    setTimeout(() => {
+                        editInput.focus();
+                        editInput.select();
+                    }, 0);
+
+                    // Salvar ao pressionar Enter
+                    editInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            this.saveEditTask(task.id, editInput.value);
+                        } else if (e.key === 'Escape') {
+                            this.cancelEditTask();
+                        }
+                    });
+
+                    // Botão salvar
+                    saveBtn.addEventListener('click', () => {
+                        this.saveEditTask(task.id, editInput.value);
+                    });
+
+                    // Botão cancelar
+                    cancelBtn.addEventListener('click', () => {
+                        this.cancelEditTask();
+                    });
+
+                } else {
+                    // Modo normal de visualização
+                    taskDiv.innerHTML = `
+                        <span class="task-text">${task.text}</span>
+                        <div class="task-actions">
+                            <button class="action-btn edit-btn" title="Editar">✏️</button>
+                            <button class="action-btn delete-btn" title="Excluir">🗑️</button>
+                        </div>
+                    `;
+
+                    // Eventos para modo normal
+                    const taskText = taskDiv.querySelector('.task-text');
+                    const editBtn = taskDiv.querySelector('.edit-btn');
+                    const deleteBtn = taskDiv.querySelector('.delete-btn');
+
+                    // Alternar conclusão ao clicar no texto
+                    taskText.addEventListener('click', () => {
+                        this.toggleTask(task.id);
+                    });
+
+                    // Botão editar
+                    editBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.startEditTask(task.id);
+                    });
+
+                    // Botão excluir
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteTask(task.id);
+                    });
+                }
+
+                return taskDiv;
+            }
+
+            // Renderizar estado vazio
+            renderEmptyState() {
+                this.tasksList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>🎯 Nenhuma tarefa ainda</h3>
+                        <p>Adicione sua primeira tarefa acima para começar!</p>
+                    </div>
+                `;
+            }
+
+            // Mostrar feedback visual
+            showFeedback(message, type) {
+                // Remover feedback anterior se existir
+                const existingFeedback = document.querySelector('.feedback-message');
+                if (existingFeedback) {
+                    existingFeedback.remove();
+                }
+
+                // Criar elemento de feedback
+                const feedback = document.createElement('div');
+                feedback.className = 'feedback-message';
+                feedback.textContent = message;
+                feedback.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 1000;
+                    animation: slideInRight 0.3s ease-out;
+                    background: ${type === 'success' ? '#28a745' : '#dc3545'};
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                `;
+
+                // Adicionar animação
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOutRight {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Adicionar ao DOM
+                document.body.appendChild(feedback);
+
+                // Remover após 3 segundos
+                setTimeout(() => {
+                    feedback.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        if (feedback.parentNode) {
+                            feedback.remove();
+                        }
+                        style.remove();
+                    }, 300);
+                }, 3000);
+            }
+        }
+
+        // Inicializar aplicação quando DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', () => {
+            new TodoApp();
+        });
+    </script>
+</body>
+</html>
